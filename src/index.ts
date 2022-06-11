@@ -1,7 +1,7 @@
-const { Server } = require("socket.io");
+import { Server } from "socket.io";
 
-const players = [];
-const rooms = {};
+const players: any[] = [];
+const rooms: any = {};
 
 const io = new Server({
   cors: {
@@ -131,8 +131,8 @@ io.on("connection", (socket) => {
 
         playerData.currentPlayer.lastMove = selectedCards.length;
         playerData.currentPlayer.lastMoveCards = selectedCards;
-        playerData.currentPlayer.cards = playerData.currentPlayer.cards.filter(x => !selectedCards.some(y => y.value === x.value));
-        playerData.cardCount = playerData.currentPlayer.cards.length;
+        playerData.currentPlayer.cards = playerData.currentPlayer.cards.filter((x: any) => !selectedCards.some((y: any) => y.value === x.value));
+        playerData.currentPlayer.cardCount = playerData.currentPlayer.cards.length;
         playerData.currentPlayer.isTurn = false;
 
         playerData.nextPlayer.isTurn = true;
@@ -146,9 +146,9 @@ io.on("connection", (socket) => {
 
 io.listen(3001);
 
-function findNextPlayer(players) {
-  const currentPlayer = players.find(x => x.isTurn);
-  const currentPlayerIndex = players.findIndex(x => x === currentPlayer);
+function findNextPlayer(players: any) {
+  const currentPlayer = players.find((x: any) => x.isTurn);
+  const currentPlayerIndex = players.findIndex((x: any) => x === currentPlayer);
   let nextPlayerIndex = currentPlayerIndex + 1;
 
   if (nextPlayerIndex === players.length) {
@@ -166,7 +166,7 @@ function findNextPlayer(players) {
   };
 }
 
-function findLastMovedPlayer(players, currentPlayerIndex) {
+function findLastMovedPlayer(players: any, currentPlayerIndex: any) {
   for (let i = 1; i <= players.length; i++) {
     const index = (players.length + currentPlayerIndex - 1) % players.length;
 
@@ -178,7 +178,7 @@ function findLastMovedPlayer(players, currentPlayerIndex) {
   return null;
 }
 
-function isPlayerPlayedCorrect(correctValue, player) {
+function isPlayerPlayedCorrect(correctValue: any, player: any) {
   for (let i = 0; i < player.lastMoveCards.length; i++) {
     if (player.lastMoveCards[i].value !== correctValue) {
       return false;
@@ -188,10 +188,10 @@ function isPlayerPlayedCorrect(correctValue, player) {
   return true;
 }
 
-function notifyPlayers(game) {
+function notifyPlayers(game: any) {
   for (let i = 0; i < game.players.length; i++) {
     const p = players.find(x => x.name === game.players[i].name);
-    game.players.forEach(x => x.isYou = x.name === p.name);
+    game.players.forEach((x: any) => x.isYou = x.name === p.name);
     io.to(p.id).emit("notify", game);
   }
 }
@@ -219,8 +219,9 @@ function getAllCards() {
   return cards;
 }
 
-function shuffle(array) {
-  let currentIndex = array.length, randomIndex;
+function shuffle<T>(array: T[]) {
+  let currentIndex = array.length
+  let randomIndex: number = 0;
 
   while (currentIndex != 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
