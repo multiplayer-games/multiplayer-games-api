@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { shuffle } from "./utils";
 
 const players: any[] = [];
 const rooms: any = {};
@@ -219,18 +220,3 @@ function getAllCards() {
   return cards;
 }
 
-function shuffle<T>(array: T[]) {
-  let currentIndex = array.length
-  let randomIndex: number = 0;
-
-  while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]
-    ];
-  }
-
-  return array;
-}
