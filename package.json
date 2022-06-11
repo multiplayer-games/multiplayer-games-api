@@ -1,0 +1,11 @@
+{
+  "name": "multiplayer-games-api",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^4.5.1"
+  }
+}
