@@ -1,34 +1,64 @@
 import { Server } from "socket.io";
 import { ORIGIN, PORT } from "./constants";
 import { addNewPlayerToGame, createNewGame, startGame } from "./game";
+import {
+  notifyCreatedRoom,
+  notifyInGame,
+  notifyJoinedRoom,
+  notifyLoggedIn,
+  notifyNonLoggedIn,
+} from "./notify";
 import { playBluff, playCards, playPass } from "./player";
-import { Game, GameObject, JoinRoomRequest, LoginRequest, PlayRequest, User } from "./types";
+import {
+  Game,
+  RoomObject,
+  JoinRoomRequest,
+  LoginRequest,
+  PlayRequest,
+  User,
+  Emits,
+} from "./types";
 
 const users: User[] = [];
-const rooms: GameObject = {};
+const rooms: RoomObject = {};
 
 const io = new Server({
   cors: {
     origin: ORIGIN,
     methods: ["GET", "POST"],
-  }
+  },
 });
 
 io.on("connection", (socket) => {
   console.log("connected...", socket.id);
+  notifyNonLoggedIn(io, socket.id);
 
-  socket.on("login", ({ name }: LoginRequest) => {
-    console.log(`login [${socket.id}]: ${name}`);
+  socket.on(Emits.Login, ({ name }: LoginRequest) => {
+    console.log(`login [${socket.id}]: Name: ${name}`);
 
-    users.push({ socket, id: socket.id, name });
+    const isUserExists = users.some((x) => x.id === socket.id);
 
-    socket.emit("logged");
+    if (!isUserExists) {
+      users.push({
+        socket,
+        id: socket.id,
+        name,
+        status: "LoggedIn",
+      });
+    }
+
+    const user = users.find((x) => x.id === socket.id);
+
+    notifyLoggedIn(io, socket.id, user!);
   });
 
-  socket.on("create-room", () => {
+  socket.on(Emits.CreateRoom, () => {
     console.log(`create-room [${socket.id}]`);
 
-    const userName = users.find(x => x.id === socket.id)!.name;
+    // TODO: Check if room exists
+    // TODO: But what if game fnished?
+
+    const userName = users.find((x) => x.id === socket.id)!.name;
 
     rooms[socket.id] = createNewGame({
       roomId: socket.id,
@@ -36,36 +66,41 @@ io.on("connection", (socket) => {
       userName,
     });
 
-    notifyPlayers(rooms[socket.id]);
+    notifyCreatedRoom(io, rooms[socket.id]);
   });
 
-  socket.on("join-room", ({ roomId }: JoinRoomRequest) => {
-    console.log(`join-room [${socket.id}]: ${roomId}`);
+  socket.on(Emits.JoinRoom, ({ roomId }: JoinRoomRequest) => {
+    console.log(`join-room [${socket.id}]: Room Id: ${roomId}`);
 
     const game = rooms[roomId];
-    const userName = users.find(x => x.id === socket.id)!.name;
+
+    if (!game) return;
+
+    const userName = users.find((x) => x.id === socket.id)!.name;
 
     addNewPlayerToGame(game, { userId: socket.id, userName });
 
-    notifyPlayers(game);
+    notifyJoinedRoom(io, rooms[roomId]);
   });
 
-  socket.on("start", () => {
+  socket.on(Emits.StartGame, () => {
     console.log(`start [${socket.id}]`);
 
-    const game = rooms[socket.id]
+    const game = rooms[socket.id];
+
+    if (!game) return;
 
     startGame(game);
 
-    notifyPlayers(game);
+    notifyInGame(io, game);
   });
 
-  socket.on("play", (data: PlayRequest) => {
+  socket.on(Emits.Play, (data: PlayRequest) => {
     console.log(`play [${socket.id}]: ${JSON.stringify(data)}`);
 
     const game = rooms[data.roomId];
 
-    if (!isYourTurn(game, socket.id)) return;
+    if (!game || !isYourTurn(game, socket.id)) return;
 
     switch (data.type) {
       case "BLUFF":
@@ -82,25 +117,12 @@ io.on("connection", (socket) => {
         break;
     }
 
-    notifyPlayers(game);
+    notifyInGame(io, game);
   });
 });
 
 io.listen(PORT);
 
-function notifyPlayers(game: Game) {
-  for (let i = 0; i < game.players.length; i++) {
-    const player = game.players[i];
-
-    game.players.forEach((p: any) => {
-      p.isYou = p.name === player.name;
-      p.cardCount = p.cards.length;
-    });
-
-    io.to(player.id).emit("notify", game);
-  }
-}
-
 function isYourTurn(game: Game, playerId: string) {
-  return game.players.find(x => x.isTurn)?.id === playerId;
+  return game.players.find((x) => x.isTurn)?.id === playerId;
 }

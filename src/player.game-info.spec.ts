@@ -76,13 +76,13 @@ describe("Player Game Info Tests", () => {
     expect(game.players[1].isTurn).toBe(true);
     expect(game.players[2].isTurn).toBe(false);
 
-    playCards(game, "8", game.players[0].cards.slice(0, 2));
+    playCards(game, "8", game.players[1].cards.slice(0, 2));
 
     expect(game.players[0].isTurn).toBe(false);
     expect(game.players[1].isTurn).toBe(false);
     expect(game.players[2].isTurn).toBe(true);
 
-    playCards(game, "8", game.players[0].cards.slice(0, 2));
+    playCards(game, "8", game.players[2].cards.slice(0, 2));
 
     expect(game.players[0].isTurn).toBe(true);
     expect(game.players[1].isTurn).toBe(false);
@@ -101,18 +101,18 @@ describe("Player Game Info Tests", () => {
 
     startGame(game);
 
-    expect(game.setCardValue).toBe(true);
+    expect(game.canSetCardValue).toBe(true);
 
     playCards(game, "8", game.players[0].cards.slice(0, 2));
 
-    expect(game.setCardValue).toBe(false);
+    expect(game.canSetCardValue).toBe(false);
 
     playPass(game);
 
-    expect(game.setCardValue).toBe(false);
+    expect(game.canSetCardValue).toBe(false);
 
     playPass(game);
 
-    expect(game.setCardValue).toBe(true);
+    expect(game.canSetCardValue).toBe(true);
   });
 });

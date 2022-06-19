@@ -31,7 +31,8 @@ function findLastPlayer(game: Game) {
   const currentPlayerIndex = game.players.findIndex((x) => x === currentPlayer);
 
   for (let i = 1; i <= game.players.length; i++) {
-    const index = (game.players.length + currentPlayerIndex - i) % game.players.length;
+    const index =
+      (game.players.length + currentPlayerIndex - i) % game.players.length;
 
     if (typeof game.players[index].lastMove === "number") {
       return {
@@ -45,13 +46,15 @@ function findLastPlayer(game: Game) {
 }
 
 export function playBluff(game: Game) {
+  if (!game.canPlayBluff) return;
+
   const playersInfo = findGamePlayersInfo(game);
 
   if (!playersInfo.lastPlayer) return; // TODO: Notify user
 
   const lastMovedCards = playersInfo.lastPlayer.lastMovedCards;
 
-  game.players.forEach(p => {
+  game.players.forEach((p) => {
     p.lastMove = "NONE";
     p.lastMovedCards = [];
     p.isTurn = false;
@@ -71,10 +74,14 @@ export function playBluff(game: Game) {
   }
 
   game.cards = [];
-  game.setCardValue = true;
+  game.canSetCardValue = true;
+  game.canPlayBluff = false;
+  game.canPlayPass = false;
 }
 
 export function playPass(game: Game) {
+  if (!game.canPlayPass) return;
+
   const playersInfo = findGamePlayersInfo(game);
 
   playersInfo.currentPlayer.lastMove = "PASS";
@@ -85,30 +92,51 @@ export function playPass(game: Game) {
 
   const afterPlayersInfo = findGamePlayersInfo(game);
 
-  if (afterPlayersInfo.lastPlayerIndex === afterPlayersInfo.currentPlayerIndex) {
-    game.setCardValue = true;
+  if (
+    afterPlayersInfo.lastPlayerIndex === afterPlayersInfo.currentPlayerIndex
+  ) {
+    game.canSetCardValue = true;
+    game.canPlayBluff = false;
+    game.canPlayPass = false;
   }
 }
 
-export function playCards(game: Game, cardValue: CardValue, selectedCards: Card[]) {
+export function playCards(
+  game: Game,
+  cardValue: CardValue,
+  selectedCards: Card[]
+) {
   const playersInfo = findGamePlayersInfo(game);
 
   selectedCards = pickCards(playersInfo.currentPlayer.cards, selectedCards);
 
   if (selectedCards.length === 0) return; // TODO: Notify user
 
-  if (!playersInfo.lastPlayer || game.setCardValue) {
+  if (!playersInfo.lastPlayer || game.canSetCardValue) {
     game.cardValue = cardValue;
-    game.setCardValue = false;
+    game.canSetCardValue = false;
   }
 
   game.cards.push(...selectedCards);
+  game.canPlayBluff = true;
+  game.canPlayPass = true;
 
   playersInfo.currentPlayer.lastMove = selectedCards.length;
   playersInfo.currentPlayer.lastMovedCards = selectedCards;
   playersInfo.currentPlayer.isLastPlayed = true;
-  playersInfo.currentPlayer.cards = removeCards(playersInfo.currentPlayer.cards, selectedCards);
+  playersInfo.currentPlayer.cards = removeCards(
+    playersInfo.currentPlayer.cards,
+    selectedCards
+  );
   playersInfo.currentPlayer.isTurn = false;
 
   playersInfo.nextPlayer.isTurn = true;
+
+  if (playersInfo.currentPlayer.cards.length === 0) {
+    if (
+      isPlayedCorrect(playersInfo.currentPlayer.lastMovedCards, game.cardValue)
+    ) {
+      game.status = "fnished";
+    }
+  }
 }

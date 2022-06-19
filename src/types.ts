@@ -1,6 +1,29 @@
 import { Socket } from "socket.io";
 
-// API
+// Common
+
+export type CardName = `${CardType} ${CardValue}`;
+export type CardType = "Hearth" | "Club" | "Spade" | "Diamond";
+export type CardValue = "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
+
+export interface InRoomUser {
+  id: string;
+  name: string;
+}
+
+export const Emits = {
+  Login: "login",
+  CreateRoom: "create-room",
+  JoinRoom: "join-room",
+  StartGame: "start",
+  Play: "play",
+}
+
+export const Events = {
+  Notify: "notify",
+};
+
+// API.Request
 
 export interface LoginRequest {
   name: string;
@@ -24,30 +47,56 @@ export interface PlayCardsRequest {
 
 export type PlayRequest = PlayBluffOrPassRequest | PlayCardsRequest;
 
+// API.Response
+
+export interface ResponseNonAuthUser {
+  status: "NonAuth";
+}
+
+export interface ResponseLoggedInUser {
+  status: "LoggedIn";
+  username: string;
+}
+
+export interface ResponseInRoomUser {
+  status: "InRoom";
+  username: string;
+  roomId: string;
+  users: InRoomUser[];
+}
+
+export interface ResponseInGameUser {
+  status: "InGame";
+  username: string;
+  game: Game;
+}
+
 // GAME
 
+export type GameStatus = "started" | "fnished";
+
 export interface Game {
-  roomId: string;
+  id: string;
   players: Player[];
-  isStarted: boolean;
+  status: GameStatus;
   cardValue: CardValue;
-  setCardValue: boolean;
   cards: Card[];
+  canSetCardValue: boolean;
+  canPlayBluff: boolean;
+  canPlayPass: boolean;
 }
+
+export type LastMove = "NONE" | "PASS" | "BLUFF" | number;
 
 export interface Player {
   id: string;
   name: string;
   cards: Card[];
-  isTurn: boolean;
-  isLastPlayed: boolean;
-  lastMove: "NONE" | "PASS" | "BLUFF" | number;
+  lastMove: LastMove;
   lastMovedCards: Card[];
+  isLastPlayed: boolean;
+  isTurn: boolean;
 }
-
-export type CardName = `${CardType} ${CardValue}`;
-export type CardType = "Hearth" | "Club" | "Spade" | "Diamond";
-export type CardValue = "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
 
 export interface Card {
   name: CardName;
@@ -55,13 +104,16 @@ export interface Card {
   value: CardValue;
 }
 
+// Internal
+
 export interface User {
   socket: Socket;
   id: string;
   name: string;
+  status: 'LoggedIn' | 'CreatedRoom' | 'JoinedRoom' | 'PlayingGame';
 };
 
-export type GameObject = {
+export type RoomObject = {
   [roomId: string]: Game;
 };
 

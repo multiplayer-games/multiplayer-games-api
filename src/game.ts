@@ -10,7 +10,7 @@ export interface CreateNewGameOptions {
 
 export function createNewGame(options: CreateNewGameOptions) {
   const game: Game = {
-    roomId: options.roomId,
+    id: options.roomId,
     players: [
       {
         id: options.userId,
@@ -22,9 +22,11 @@ export function createNewGame(options: CreateNewGameOptions) {
         lastMovedCards: [],
       }
     ],
-    isStarted: false,
+    status: "started",
     cardValue: "A",
-    setCardValue: true,
+    canSetCardValue: true,
+    canPlayBluff: false,
+    canPlayPass: false,
     cards: [],
   };
 
@@ -49,8 +51,6 @@ export function addNewPlayerToGame(game: Game, options: AddNewPlayerToGameOption
 }
 
 export function startGame(game: Game) {
-  game.isStarted = true;
-
   const cards = shuffle(getAllCards());
   const startCount = Math.floor(cards.length / game.players.length);
   const groundCardIndex = startCount * game.players.length;
