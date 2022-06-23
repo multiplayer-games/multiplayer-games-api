@@ -23,6 +23,7 @@ const users: User[] = [];
 const rooms: RoomObject = {};
 
 const io = new Server({
+  transports: ["websocket"],
   cors: {
     origin: ORIGIN,
     methods: ["GET", "POST"],
