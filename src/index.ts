@@ -31,7 +31,6 @@ app.get("/", (_, res) => {
   res.send("Hello world!");
 });
 
-/*
 const io = new Server(server, {
   transports: ["websocket"],
   cors: {
@@ -132,7 +131,6 @@ io.on("connection", (socket) => {
     notifyInGame(io, game);
   });
 });
-*/
 
 server.listen(PORT, () => {
   console.log(`listening on *:${PORT}`);
