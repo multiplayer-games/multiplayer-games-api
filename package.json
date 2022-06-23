@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "nodemon",
-    "start": "ts-node src/index.ts",
+    "start": "tsc && node src/index.js",
+    "start2": "ts-node src/index.ts",
     "test": "jest"
   },
   "dependencies": {
