@@ -27,15 +27,17 @@ const rooms: RoomObject = {};
 const app = express();
 const server = http.createServer(app);
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.send("Hello world!");
 });
 
+/*
 const io = new Server(server, {
   transports: ["websocket"],
   cors: {
     origin: ORIGIN,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -130,6 +132,7 @@ io.on("connection", (socket) => {
     notifyInGame(io, game);
   });
 });
+*/
 
 server.listen(PORT, () => {
   console.log(`listening on *:${PORT}`);
