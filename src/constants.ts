@@ -1,6 +1,6 @@
 import { CardType, CardValue } from "./types";
 
-export const PORT = 8080;
+export const PORT = parseInt(process.env.PORT || "30001");
 export const ORIGIN = [
   "https://node-js-board-games.herokuapp.com",
   "http://node-js-board-games.herokuapp.com",
