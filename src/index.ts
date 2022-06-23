@@ -1,3 +1,5 @@
+import express from "express";
+import http from "http";
 import { Server } from "socket.io";
 import { ORIGIN, PORT } from "./constants";
 import { addNewPlayerToGame, createNewGame, startGame } from "./game";
@@ -22,7 +24,14 @@ import {
 const users: User[] = [];
 const rooms: RoomObject = {};
 
-const io = new Server({
+const app = express();
+const server = http.createServer(app);
+
+app.get("/", (req, res) => {
+  res.send("Hello world!");
+});
+
+const io = new Server(server, {
   transports: ["websocket"],
   cors: {
     origin: ORIGIN,
@@ -122,7 +131,9 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(PORT);
+server.listen(PORT, () => {
+  console.log(`listening on *:${PORT}`);
+});
 
 function isYourTurn(game: Game, playerId: string) {
   return game.players.find((x) => x.isTurn)?.id === playerId;
